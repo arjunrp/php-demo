@@ -176,7 +176,7 @@ Class Banking{
 			return array('success'=>false,'message'=>'Transaction Failed!');
 		}
 		return array('success'=>true,
-					 'message'=>'Rs '.$amount.' withdrawed,Your current balance is '.$this->getBalance($type)['message']
+					 'message'=>'Rs '.$amount.' withdrawed, Your current balance is '.$this->getBalance($type)['message']
 					);
 	}
 

@@ -72,10 +72,24 @@ foreach($accounts as $item){
 			.popover-content button:nth-child(2),.popover-content button:nth-child(3){
 				margin-left:10px;
 			}
+			.loading{
+				width:100%;
+				height:100%;
+				z-index:5000;
+				opacity:.5;
+				position:absolute;
+				top:0px;
+				left:0px;
+				background-color:rgba(255,255,255,1);
+				background-image:url('www/img/loader.gif');
+				background-repeat:no-repeat;
+				background-position: 50% 40%;
+			}
+
 		</style>
 	</head>
 	<body>
-
+	<div class="loading"></div>
 	<div class="modal fade" id="alert">
 		<div class="modal-dialog">
 			<div class="modal-content">
@@ -86,7 +100,6 @@ foreach($accounts as $item){
 			</div>
 		</div>
 	</div>
-
 	<div class="modal fade" id="withdraw-modal">
 		<div class="modal-dialog">
 			<div class="modal-content">
@@ -209,6 +222,12 @@ foreach($accounts as $item){
 			<div class="col-xs-4"></div>
 			<div class="col-xs-4"> <button id="statment" class="btn btn-primary right home-btn" >Account Statement</button> </div>
 		</div>
+
+		<div class="row">
+			<div class="col-xs-4"></div>
+			<div class="col-xs-4"></div>
+			<div class="col-xs-4"><button id="exit-home" class="btn btn-primary right  home-btn">Exit</button></div>
+		</div>
 	</div>
 
 	<script type="text/javascript" src="www/js/jquery.min.js"></script>
@@ -227,8 +246,10 @@ foreach($accounts as $item){
 					success:function(data){
 						try{
 							data=JSON.parse(data);
+							$('#statement-count').val("");
 							if(data.success===true){
 								$('#statement-list').empty();
+
 								if(data.message.length===0){
 									alert("No transaction records found");
 									$('#statment-modal').modal('hide');
@@ -297,11 +318,81 @@ foreach($accounts as $item){
 			$(document).ready(function(){
 				$('#balance-home').popover({'placement':'bottom','html':true,'template':'<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content">sadsad</div></div>'});
 
+				$('.loading').css('display','none');
+				$.ajax({
+					beforeSend:function(){
+						$('.loading').css('display','block');
+						console.log('d');
+					},
+					complete:function(){
+						$('.loading').css('display','none');
+					}
+				})
+
+				$('#exit-home').click(function(){
+					$.ajax({
+					url:'ajax.php',
+					type:'POST',
+					data:'id=6',
+					success:function(data){
+						try{
+							data = JSON.parse(data);
+							if(data.success===true){
+								window.location='home.php';
+								return;
+							}
+							else{
+								alert(data.message);
+							}
+						}
+						catch(e){
+							alert("Invalid response from server");
+						}
+					},
+					error:function(){
+							alert("Cannot Connect To Server");
+						}
+					});
+				});
+
+				$('#withdraw-submit').click(function(){
+					var account = $('#withdraw-account').val(),
+						amount = parseFloat($('#withdraw-amount').val());
+					if(amount<=0){
+						alert("Amount should be greater than zero");
+						return;
+					}
+					$.ajax({
+					url:'ajax.php',
+					type:'POST',
+					data:'id=5&account='+account+"&amount="+amount,
+					success:function(data){
+						try{
+							data=JSON.parse(data);
+							if(data.success===true){
+								$('#withdraw-modal').modal('hide');
+								$('#withdraw-account').val("-1");
+								$('#withdraw-amount').val("-1");
+							}
+							alert(data.message);
+						}
+						catch(e){
+							alert("Invalid Response From Server");
+						}
+					},
+					error:function(){
+						alert("Cannot Connect To Server");
+					}
+				});
+
+				});
 				$(document).on('click','#balance-current',function(){
 					getBalance('C');
-				}).on('click','#balance-fixed',function(){
+				})
+				.on('click','#balance-fixed',function(){
 					getBalance('F');
-				}).on('click','#balance-savings',function(){
+				})
+				.on('click','#balance-savings',function(){
 					getBalance('S');
 				});
 				$('#pin-submit').click(function(){
@@ -327,6 +418,9 @@ foreach($accounts as $item){
 					success:function(data){
 							try{
 								data=JSON.parse(data);
+								if(data.success===true){
+									$('#pin-modal').modal('hide');
+								}
 								alert(data.message);
 								$("#pin-new").val("");
 								$("#pin-confirm").val("");
@@ -354,9 +448,7 @@ foreach($accounts as $item){
 					}
 					loadTransactions(count);
 				});
-
 			});
-
 		</script>
 	</body>
 </html>

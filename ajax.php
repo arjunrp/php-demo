@@ -4,6 +4,7 @@ function session(){
 	if(empty($_SESSION['account'])){
 		return false;
 	}
+	session_regenerate_id(true);
 	return true;
 }
 include_once'./classes/db.php';
@@ -46,10 +47,14 @@ switch($id){
 			$response['message'] = 'Your account is blocked !!';
 			break;
 		}
+
 		session_start();
 		$_SESSION['account'] = $account;
 		$_SESSION['name'] = $details['name'];
 		$_SESSION['types'] = $details['accounts'];
+
+		$banking = new Banking($_SESSION['account'],$_SESSION['name'],$dbo);
+		$banking->addAccountActivity("Accessed banking portal using ATM card");
 		$response['success'] = true;
 		$response['message'] = 'Welcome '.ucwords($details['name']).', Please wait';
 		break;
@@ -103,7 +108,7 @@ switch($id){
 		break;
 	}
 	case 4:{
-		/* Handler for managing pin change, request with the old and new pin */
+		/* Handler for getting account balance, request with account type*/
 		if(session()===false){
 			$response['message']="Your session is invalid !!";
 			break;
@@ -114,6 +119,31 @@ switch($id){
 		}
 		$account = new Banking($_SESSION['account'],$_SESSION['name'],$dbo);
 		$response = $account->getBalance($_POST['type']);
+		break;
+	}
+	case 5:{
+		/* Handler for withdrawing amount, request with amount and account type */
+		if(session()===false){
+			$response['message']="Your session is invalid !!";
+			break;
+		}
+		if(!isset($_POST['account'])|| !isset($_POST['amount'])){
+			$response['message']="Your request is invalid !!";
+			break;
+		}
+		$account = new Banking($_SESSION['account'],$_SESSION['name'],$dbo);
+		$response = $account->withdraw($_POST['amount'],$_POST['account']);
+		break;
+	}
+	case 6:{
+		/* Handler for logging out */
+		if(session()===false){
+			$response['message']="Your session is invalid !!";
+			break;
+		}
+		session_unset();
+		session_destroy();
+		$response['success']=true;
 		break;
 	}
 	default:{
