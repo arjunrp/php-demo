@@ -96,7 +96,7 @@ Class Banking{
 			return array('success'=>true,'message'=>'');
 		}
 		else{
-			return array('success'=>false,'message'=>'Invalid PIN');
+			return array('success'=>false,'message'=>'Your PIN is wrong');
 		}
 	}
 
@@ -225,7 +225,6 @@ Class Banking{
 									'".$details."'
 									)");
 
-		var_dump($this->db->error);
 		if($result===false){
 			return array('success'=>false,'message'=>'Failed to log transaction');
 		}
