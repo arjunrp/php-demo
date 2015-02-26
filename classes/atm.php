@@ -150,7 +150,9 @@ Class Banking{
 		}
 
 		$balance = $this->getBalance($type)['message'];
-
+		if($amount<=0){
+			return array('success'=>false,'message'=>'Invalid amount '.$amount);
+		}
 		if(($balance-$amount) < 0){
 			return array('success'=>false,'message'=>'Your account does not have sufficient balance');
 		}
