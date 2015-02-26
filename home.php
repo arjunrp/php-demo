@@ -319,14 +319,12 @@ foreach($accounts as $item){
 				$('#balance-home').popover({'placement':'bottom','html':true,'template':'<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content">sadsad</div></div>'});
 
 				$('.loading').css('display','none');
-				$.ajax({
-					beforeSend:function(){
-						$('.loading').css('display','block');
-						console.log('d');
-					},
-					complete:function(){
-						$('.loading').css('display','none');
-					}
+
+				$(document).ajaxStart(function(){
+					$('.loading').css('display','block');
+				})
+				$(document).ajaxStop(function(){
+					$('.loading').css('display','none');
 				})
 
 				$('#exit-home').click(function(){
