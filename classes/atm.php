@@ -248,7 +248,11 @@ Class Banking{
 		if($result===false){
 			return array('success'=>false,'message'=>'Failed to get transactions');
 		}
-		return array('success'=>true,'message'=>$result->fetch_all(MYSQLI_ASSOC));
+		$return = array();
+		while($row = $result->fetch_assoc()){
+			array_push($return,$row);
+		}
+		return array('success'=>true,'message'=>$return);
 	}
 
 }
