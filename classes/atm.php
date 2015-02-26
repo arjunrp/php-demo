@@ -42,7 +42,6 @@ Class Banking{
 							LEFT JOIN locked_account ON account.account_number = locked_account.account
 							WHERE account.account_number='".$accountno."'");
 		if($result===false || $accounttypes===false){
-
 			return array('success'=>false,'message'=>'Query error');
 		}
 		if($result->num_rows!==1){
@@ -77,6 +76,12 @@ Class Banking{
     * @static
     */
 	public static function checkPin($db,$accountno,$pin){
+		if(preg_match('/^\d{4}$/',$pin)==false){
+			return array('success'=>false,'message'=>'Pin should be a 4 digit number');
+		}
+		if($accountno===''){
+			return array('success'=>false,'message'=>'Account No is invalid');
+		}
 		$accountno = $db->real_escape_string($accountno);
 		$result = $db->query("SELECT pin FROM account WHERE account_number='".$accountno."'");
 		if($result===false){
@@ -87,7 +92,7 @@ Class Banking{
 		}
 		$row = $result->fetch_assoc();
 		$result->close();
-		if($row['pin']===$pin){
+		if($row['pin']===md5($pin)){
 			return array('success'=>true,'message'=>'');
 		}
 		else{
