@@ -1,4 +1,11 @@
 <?php
+function session(){
+	session_start();
+	if(empty($_SESSION['account'])){
+		return false;
+	}
+	return true;
+}
 include_once'./classes/db.php';
 include_once'./classes/atm.php';
 $db = new Database('atm','root','root','localhost');
@@ -45,6 +52,54 @@ switch($id){
 		$_SESSION['types'] = $details['accounts'];
 		$response['success'] = true;
 		$response['message'] = 'Welcome '.ucwords($details['name']).', Please wait';
+		break;
+	}
+	case 2:{
+		/* Handler for managing account statement queries, request with the count of transactions required */
+		if(session()===false){
+			$response['message']="Your session is invalid !!";
+			break;
+		}
+
+		if(isset($_POST['count'])){
+			$count=(int) $_POST['count'];
+			if($count<=0 || $count>100){
+				$response['message']="Count value should be between 1-100";
+				break;
+			}
+		}
+		else{
+			$count = 5;
+		}
+		$account = new Banking($_SESSION['account'],$_SESSION['name'],$dbo);
+		$response = $account->accountStatement($count);
+		break;
+	}
+	case 3:{
+		/* Handler for managing pin change, request with the old and new pin */
+		if(session()===false){
+			$response['message']="Your session is invalid !!";
+			break;
+		}
+
+		if(!isset($_POST['oldPin'])||!isset($_POST['newPin'])){
+			$response['message']="Your request is invalid !!";
+			break;
+		}
+		if($_POST['newPin']===$_POST['oldPin']){
+			$response['message'] = 'Old and new pin are same one';
+			break;
+		}
+		$result = Banking::checkPin($dbo,$_SESSION['account'],$_POST['oldPin']);
+		if($result['success']===false){
+			$response = $result;
+			break;
+		}
+
+
+
+		$account = new Banking($_SESSION['account'],$_SESSION['name'],$dbo);
+		$response = $account->changePin($_POST['newPin']);
 		break;
 	}
 	default:{

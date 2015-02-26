@@ -1,6 +1,14 @@
 <?php
-	session_start();
-$name = 'arjun';
+
+session_start();
+if(empty($_SESSION['account'])){
+	die(header('location:index.php'));
+}
+$name = $_SESSION['name'];
+$accounts = $_SESSION['types'];
+
+
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -103,17 +111,17 @@ $name = 'arjun';
 					<div class="row">
 						<div class="col-md-6 form-group">
 							<label class="">New Pin</label>
-							<input type="text" class="form-control" id="pin-new">
+							<input type="password" class="form-control" id="pin-new">
 						</div>
 						<div class="col-md-6">
 							<label class="">Confirm New Pin</label>
-							<input type="text" class="form-control" id="pin-confirm">
+							<input type="password" class="form-control" id="pin-confirm">
 						</div>
 					</div>
 					<div class="row">
 						<div class="col-md-6 form-group">
 							<label class="">Old Pin</label>
-							<input type="text" class="form-control" id="pin-old">
+							<input type="password" class="form-control" id="pin-old">
 						</div>
 					</div>
 				</div>
@@ -182,12 +190,9 @@ $name = 'arjun';
 			<div class="col-xs-4"> <button id="balance-home" data-toggle="popover"
 			data-content="<button class='btn btn-primary'>Fixed</button>" title="Select account type" class="btn btn-primary  home-btn">Check Balance</button> </div>
 			<div class="col-xs-4"></div>
-			<div class="col-xs-4"> <button data-toggle="modal" data-target="#statment-modal" class="btn btn-primary right home-btn" >Account Statement</button> </div>
+			<div class="col-xs-4"> <button id="statment" class="btn btn-primary right home-btn" >Account Statement</button> </div>
 		</div>
 	</div>
-
-
-
 
 	<script type="text/javascript" src="www/js/jquery.min.js"></script>
 	<script type="text/javascript" src="www/js/bootstrap.min.js"></script>
@@ -196,13 +201,98 @@ $name = 'arjun';
 					$("#alert-message").text(message.toString());
 					$('#alert').modal({"show":true,"keyboard":true});
 			}
+			function loadTransactions(count){
+				$.ajax({
+					url:'ajax.php',
+					type:'POST',
+					data:'id=2&count='+count,
+					success:function(data){
+						try{
+							data=JSON.parse(data);
+							if(data.success===true){
+								$('#statement-list').empty();
+								for(i in data.message){
+									$('#statement-list').append('<tr>\
+										<td>'+data.message[i].id+'</td>\
+										<td>'+data.message[i].moment+'</td>\
+										<td>'+data.message[i].atm+'</td>\
+										<td>'+data.message[i].description+'</td>\
+									</tr>');
+								}
+							}
+							else{
+								alert(data.message);
+							}
+						}
+						catch(e){
+							alert("Invalid Response From Server");
+						}
+					},
+					error:function(){
+						alert("Cannot Connect To Server");
+					}
+				});
+			}
+
 			$(document).ready(function(){
 				$('#balance-home').popover({'placement':'bottom','html':true,'template':'<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content">sadsad</div></div>'});
 
+
+
+
 				$('#pin-submit').click(function(){
-						alert('Pin changed !!');
+					var newPin = $("#pin-new").val(),
+						cnfrmPin = $("#pin-confirm").val(),
+						oldPin = $("#pin-old").val();
+					if(newPin!==cnfrmPin){
+						alert("PIN numbers not matching");
+						return;
+					}
+					if(newPin.search(/^\d{4}$/)===-1){
+						$('#message').text("New Pin should be a 4 digit no");
+						return;
+					}
+					if(oldPin.search(/^\d{4}$/)===-1){
+						$('#message').text("Old Pin should be a 4 digit no");
+						return;
+					}
+					$.ajax({
+					url:'ajax.php',
+					type:'POST',
+					data:'id=3&oldPin='+oldPin+'&newPin='+newPin,
+					success:function(data){
+						try{
+							data=JSON.parse(data);
+							alert(data.message);
+							$("#pin-new").val("");
+							$("#pin-confirm").val("");
+							$("#pin-old").val("");
+						}
+						catch(e){
+							alert("Invalid Response From Server");
+						}
+					},
+					error:function(){
+						alert("Cannot Connect To Server");
+					}
+				})
+
 				});
-				//$('#balance-home').popover({'placement':'left',template:''});
+
+				$('#statment').click(function(){
+					$('#statment-modal').modal({'show':true});
+					loadTransactions(5);
+				});
+
+				$('#statement-submit').click(function(){
+					count = parseInt($('#statement-count').val());
+					if(count<=0 || count >100 || isNaN(count)===true){
+						alert("Count value should be between 1-100");
+						return;
+					}
+					loadTransactions(count);
+				});
+
 			});
 
 		</script>
