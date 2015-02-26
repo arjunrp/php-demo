@@ -6,8 +6,22 @@ if(empty($_SESSION['account'])){
 }
 $name = $_SESSION['name'];
 $accounts = $_SESSION['types'];
-
-
+$balanceStr = '';
+$selectStr = '';
+foreach($accounts as $item){
+	if($item==='S'){
+		$balanceStr .= "<button class='btn btn-primary' id='balance-savings'>Savings</button>";
+		$selectStr .= "<option value='S'>Savings</option>";
+	}
+	if($item==='F'){
+		$balanceStr .= "<button class='btn btn-primary' id='balance-fixed'>Fixed</button>";
+		$selectStr .= "<option value='F'>Fixed</option>";
+	}
+	if($item==='C'){
+		$balanceStr .= "<button class='btn btn-primary' id='balance-current'>Current</button>";
+		$selectStr .= "<option value='C'>Current</option>";
+	}
+}
 
 ?>
 <!DOCTYPE html>
@@ -30,8 +44,6 @@ $accounts = $_SESSION['types'];
 			input,button,select{
 				border-radius:2px !important ;
 			}
-
-
 			#message{
 				margin-left:10px;
 				color:#ED5F54;
@@ -50,10 +62,15 @@ $accounts = $_SESSION['types'];
 			.modal-body>row{
 				padding-left:10px;
 				padding-right:10px;
-
 			}
 			#alert{
 				z-index:5000;
+			}
+			#statment-modal table{
+				margin-top:15px;
+			}
+			.popover-content button:nth-child(2),.popover-content button:nth-child(3){
+				margin-left:10px;
 			}
 		</style>
 	</head>
@@ -82,8 +99,8 @@ $accounts = $_SESSION['types'];
 						<div class="col-md-6 form-group">
 							<label class="">Account</label>
 							<select id="withdraw-account" class=" form-control">
-								<option>Savings</option>
-								<option>FIXED</option>
+								<option value="-1">--Select account type--</option>
+								<?php echo $selectStr; ?>
 							</select>
 						</div>
 						<div class="col-md-6">
@@ -188,7 +205,7 @@ $accounts = $_SESSION['types'];
 
 		<div class="row">
 			<div class="col-xs-4"> <button id="balance-home" data-toggle="popover"
-			data-content="<button class='btn btn-primary'>Fixed</button>" title="Select account type" class="btn btn-primary  home-btn">Check Balance</button> </div>
+			data-content="<?php echo $balanceStr; ?>" title="Select account type" class="btn btn-primary  home-btn">Check Balance</button> </div>
 			<div class="col-xs-4"></div>
 			<div class="col-xs-4"> <button id="statment" class="btn btn-primary right home-btn" >Account Statement</button> </div>
 		</div>
@@ -198,6 +215,7 @@ $accounts = $_SESSION['types'];
 	<script type="text/javascript" src="www/js/bootstrap.min.js"></script>
 		<script>
 			window.alert = function(message){
+					$("#alert").modal('hide');
 					$("#alert-message").text(message.toString());
 					$('#alert').modal({"show":true,"keyboard":true});
 			}
@@ -211,6 +229,11 @@ $accounts = $_SESSION['types'];
 							data=JSON.parse(data);
 							if(data.success===true){
 								$('#statement-list').empty();
+								if(data.message.length===0){
+									alert("No transaction records found");
+									$('#statment-modal').modal('hide');
+									return;
+								}
 								for(i in data.message){
 									$('#statement-list').append('<tr>\
 										<td>'+data.message[i].id+'</td>\
@@ -233,13 +256,54 @@ $accounts = $_SESSION['types'];
 					}
 				});
 			}
+			function getBalance(type){
+				$.ajax({
+					url:'ajax.php',
+					type:'POST',
+					data:'id=4&type='+type,
+					success:function(data){
+						try{
+							data=JSON.parse(data);
+							if(data.success===true){
+								message=''
+								if(type==='C'){
+									message="Your 'Current Account' balance is: Rs.";
+								}
+								if(type==='S'){
+									message="Your 'Savings Account' balance is: Rs.";
+								}
+								if(type==='F'){
+									message="Your 'Fixed Account' balance is: Rs.";
+								}
+								message+=data.message;
+								alert(message);
+
+							}
+							else{
+								alert(data.message);
+							}
+							$('#balance-home').popover('hide');
+						}
+						catch(e){
+							alert("Invalid Response From Server");
+						}
+					},
+					error:function(){
+						alert("Cannot Connect To Server");
+					}
+				});
+			}
 
 			$(document).ready(function(){
 				$('#balance-home').popover({'placement':'bottom','html':true,'template':'<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content">sadsad</div></div>'});
 
-
-
-
+				$(document).on('click','#balance-current',function(){
+					getBalance('C');
+				}).on('click','#balance-fixed',function(){
+					getBalance('F');
+				}).on('click','#balance-savings',function(){
+					getBalance('S');
+				});
 				$('#pin-submit').click(function(){
 					var newPin = $("#pin-new").val(),
 						cnfrmPin = $("#pin-confirm").val(),
@@ -261,24 +325,22 @@ $accounts = $_SESSION['types'];
 					type:'POST',
 					data:'id=3&oldPin='+oldPin+'&newPin='+newPin,
 					success:function(data){
-						try{
-							data=JSON.parse(data);
-							alert(data.message);
-							$("#pin-new").val("");
-							$("#pin-confirm").val("");
-							$("#pin-old").val("");
+							try{
+								data=JSON.parse(data);
+								alert(data.message);
+								$("#pin-new").val("");
+								$("#pin-confirm").val("");
+								$("#pin-old").val("");
+							}
+							catch(e){
+								alert("Invalid Response From Server");
+							}
+						},
+						error:function(){
+							alert("Cannot Connect To Server");
 						}
-						catch(e){
-							alert("Invalid Response From Server");
-						}
-					},
-					error:function(){
-						alert("Cannot Connect To Server");
-					}
-				})
-
+					});
 				});
-
 				$('#statment').click(function(){
 					$('#statment-modal').modal({'show':true});
 					loadTransactions(5);

@@ -102,6 +102,20 @@ switch($id){
 		$response = $account->changePin($_POST['newPin']);
 		break;
 	}
+	case 4:{
+		/* Handler for managing pin change, request with the old and new pin */
+		if(session()===false){
+			$response['message']="Your session is invalid !!";
+			break;
+		}
+		if(!isset($_POST['type'])){
+			$response['message']="Your request is invalid !!";
+			break;
+		}
+		$account = new Banking($_SESSION['account'],$_SESSION['name'],$dbo);
+		$response = $account->getBalance($_POST['type']);
+		break;
+	}
 	default:{
 		$response['message']='Invalid ID';
 	}
