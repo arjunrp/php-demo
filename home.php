@@ -402,11 +402,11 @@ foreach($accounts as $item){
 						return;
 					}
 					if(newPin.search(/^\d{4}$/)===-1){
-						$('#message').text("New Pin should be a 4 digit no");
+						alert("New Pin should be a 4 digit no");
 						return;
 					}
 					if(oldPin.search(/^\d{4}$/)===-1){
-						$('#message').text("Old Pin should be a 4 digit no");
+						alert("Old Pin should be a 4 digit no");
 						return;
 					}
 					$.ajax({
