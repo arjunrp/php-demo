@@ -4,8 +4,15 @@
 		<title>ATM - Login</title>
 		<meta charset="utf-8"/>
 		<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-		<link rel="stylesheet" type="text/css" media="screen" href="www/css/bootstrap.min.css"/>
+		<link rel="stylesheet" type="text/css" media="screen" href="www/css/bootstrap.min.css">
+		<link href='http://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
 		<style>
+			body{
+				font-family: 'Lato', sans-serif;
+			}
+			input{
+				border-radius:2px !important ;
+			}
 			.row{
 				margin-top:14%;
 			}
@@ -23,7 +30,7 @@
 					<form id="login">
 						<div class="form-group">
 							<label for="acno">Account No</label>
-							<input class="form-control" type="text" id="acno" placeholder="Account Number">
+							<input autofocus autocomplete="off" class="form-control" type="text" id="acno" placeholder="Account Number">
 						</div>
 						<div class="form-group">
 							<label for="acno">PIN No</label>
@@ -55,19 +62,18 @@
 					$('#message').text("Invalid Pin");
 					return;
 				}
-
 				$('#submit-btn').attr('disabled','true');
 				$.ajax({
 					type:'POST',
 					url:'ajax.php',
-					data: "account="+encodeURIComponent(account)+"&pin="+pin,
+					data: "id=1&account="+encodeURIComponent(account)+"&pin="+pin,
 					success:function(data){
 						try{
 							data = JSON.parse(data);
+							$('#message').text(data.message);
 							if(data.success===true){
 								window.location='home.php';
 							}
-							$('#message').text(data.message);
 						}
 						catch(e){
 							$('#message').text("Invalid response from server");
