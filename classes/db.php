@@ -25,6 +25,7 @@ class Database{
 		}
 		else{
 			$this->db->set_charset('utf-8');
+			$this->db->query("SET time_zone = '+5:30'");
 		}
 		return $this->db;
 	}
