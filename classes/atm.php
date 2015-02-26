@@ -241,7 +241,7 @@ Class Banking{
     */
 	public function accountStatement($count){
 		$count=(int)$count;
-		$result=$this->db->query("SELECT transaction_id AS id,DATE_FORMAT(time,'%e %b %y %r') AS moment,atm,description
+		$result=$this->db->query("SELECT transaction_id AS id,DATE_FORMAT(time,'%e %b %y, %r') AS moment,atm,description
 									FROM transactions WHERE account='".$this->account."' ORDER BY time DESC LIMIT ".$count);
 		echo $this->db->error;
 		if($result===false){
